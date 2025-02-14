@@ -6,6 +6,9 @@ import { StackNavigationProp } from '@react-navigation/stack';
 import { useNavigation } from '@react-navigation/native';
 
 import auth from '@react-native-firebase/auth';
+import { useAtom } from 'jotai';
+import { userAtom } from '../../jotaiStores/userAtomStore';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 type AuthStackNavigationProp = StackNavigationProp<AuthStackNavigatorParamsList, "Signup-Screen">;
 
@@ -14,13 +17,30 @@ const SignupScreen = () => {
     const [password, setPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
 
+    const [userData, setUserData] = useAtom(userAtom);
+
     const navigation = useNavigation<AuthStackNavigationProp>();
 
     const handleSignup = async () => {
         auth()
             .createUserWithEmailAndPassword(email, password)
-            .then((res) => {
+            .then(async (res) => {
                 console.log("sign up res:", res);
+                console.log(res?.user?.email);
+                console.log(res?.user?.uid);
+
+                setUserData({
+                    uid: res?.user?.uid,
+                    email: res?.user?.email,
+                    name: "",
+                });
+
+                await AsyncStorage.setItem("userData", JSON.stringify({
+                    uid: res?.user?.uid,
+                    email: res?.user?.email,
+                    name: "",
+                }));
+
                 Alert.alert("User Sign up successs");
                 console.log('User account created & signed in!');
             })
