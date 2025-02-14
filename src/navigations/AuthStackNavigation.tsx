@@ -10,9 +10,6 @@ export type AuthStackNavigatorParamsList = {
     "Signup-Screen": undefined;
 }
 
-// AuthStackNavigator
-// const AuthStackNavigator = createStackNavigator<AuthStackNavigatorParamsList>();
-
 const AuthStackNavigation = () => {
     return (
         <AuthStackNavigator.Navigator screenOptions={{

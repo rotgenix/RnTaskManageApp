@@ -3,7 +3,6 @@ import React from 'react'
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import TasksScreen from '../screens/appScreens/TasksScreen';
 import ProfileScreen from '../screens/appScreens/ProfileScreen';
-import TaskCreationScreen from '../screens/appScreens/CreateTaskScreen';
 import { taskInterface } from '../jotaiStores/userTasksStore';
 import CreateTaskScreen from '../screens/appScreens/CreateTaskScreen';
 

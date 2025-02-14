@@ -17,25 +17,14 @@ const LoginScreen = () => {
     const navigation = useNavigation<AuthStackNavigationProp>();
 
     const handleLogin = async () => {
-        // signInWithEmailAndPassword
         auth()
             .signInWithEmailAndPassword(email, password)
             .then((res) => {
-                console.log("login res:", res);
                 Alert.alert("Login successs");
                 console.log('Logged in!');
             })
             .catch(error => {
                 console.log("login error:", error);
-
-                // if (error.code === 'auth/email-already-in-use') {
-                //     console.log('That email address is already in use!');
-                // }
-
-                // if (error.code === 'auth/invalid-email') {
-                //     console.log('That email address is invalid!');
-                // }
-                // console.error(error);
             });
     }
 

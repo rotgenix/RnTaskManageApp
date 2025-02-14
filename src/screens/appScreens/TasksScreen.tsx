@@ -36,8 +36,6 @@ const TasksScreen = () => {
 
     const [sortBy, setSortBy] = useState<"Earliest" | "Oldest" | "">("");
 
-    // const [filterBy, setFilterBy] = useState("")
-
     useEffect(() => {
         const getTasks = async () => {
             try {
@@ -48,14 +46,11 @@ const TasksScreen = () => {
                     .equalTo(userData?.uid)
                     .on('value', (snapshot) => {
                         const tasksData = snapshot.val();
-                        console.log("tasksData", tasksData)
                         if (tasksData) {
-                            console.log("here")
                             const tasksArray = Object.keys(tasksData).map((key) => ({
                                 id: key,
                                 ...tasksData[key],
                             }));
-                            console.log("tasksArray", tasksArray)
                             setTasks(tasksArray);
                             setNewTasks(tasksArray);
                         } else {
@@ -69,7 +64,6 @@ const TasksScreen = () => {
         }
 
         if (tasks?.length === 0) {
-            console.log("0");
             getTasks();
         }
         setNewTasks(tasks);
@@ -152,7 +146,6 @@ const TasksScreen = () => {
             const filteredTasks = tasks.filter((task) => {
                 return task.priority === Value;
             });
-            console.log("filteredTasks:", filteredTasks)
             setNewTasks(filteredTasks);
         } else if (FilterBy === "Status") {
             const filteredTasks = tasks.filter((task) => {
@@ -169,21 +162,11 @@ const TasksScreen = () => {
 
     const handleSort = (SortBy: string) => {
         if (SortBy === "Earliest") {
-            // Earliest
-            // Sort by dueDate (ascending)
             newTasks.sort((a, b) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime());
-
-            console.log("Ascending Order:", tasks);
         } else if (SortBy === "Oldest") {
-            // Sort by dueDate (descending)
             newTasks.sort((a, b) => new Date(b.dueDate).getTime() - new Date(a.dueDate).getTime());
-
-            console.log("Descending Order:", tasks);
         }
     }
-
-    console.log("newTasks", newTasks)
-
 
     return (
         <View style={styles.container}>
@@ -191,7 +174,6 @@ const TasksScreen = () => {
 
             <View style={styles?.searchContainer}>
                 <MaterialIcons name="search" size={24}
-                    // color="#1F75FE"
                     color={textColors?.teriaryColor}
                 />
                 <TextInput
@@ -200,13 +182,10 @@ const TasksScreen = () => {
                     value={searchQuery}
                     placeholderTextColor={textColors?.teriaryColor}
                     onChangeText={(text) => {
-                        console.log(text);
                         if (text?.length > 0) {
                             const searchedTask = tasks.filter((task) => {
-                                console.log("task", task);
                                 return task.title.includes(text);
                             });
-                            console.log("searchedTask", searchedTask);
                             setNewTasks(searchedTask);
                         }
                         else {
@@ -320,17 +299,6 @@ const TasksScreen = () => {
                             <Text style={styles.radioLabel}>High</Text>
                         </View>
                     </TouchableOpacity>
-
-
-                    {/* <TouchableOpacity onPress={() => { setSelectedFilter('Pending'); setFilterModalVisible(false); }} style={styles.modalOption}>
-                        <Text style={styles.modalText}>Pending</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity onPress={() => { setSelectedFilter('Completed'); setFilterModalVisible(false); }} style={styles.modalOption}>
-                        <Text style={styles.modalText}>Completed</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity onPress={() => setFilterModalVisible(false)} style={styles.modalClose}>
-                        <Text style={styles.modalText}>Close</Text>
-                    </TouchableOpacity> */}
                 </View>}
             </View>
 
@@ -358,37 +326,27 @@ const styles = StyleSheet.create({
         marginBottom: 20,
         borderRadius: 8,
         backgroundColor: '#fff',
-        // padding: 10,
         paddingHorizontal: 8,
     },
     searchBar: {
         flex: 1,
         height: 40,
     },
-
     // filter 
     filterContainer: {
-        // flexDirection: 'row',
-        // justifyContent: 'center',
-        // flexWrap: 'wrap',
-        // marginBottom: 10,
-        // backgroundColor: 'red',
         position: 'relative'
     },
     filterSortBtnsCont: {
         flexDirection: "row",
         justifyContent: "space-between",
-        // backgroundColor: "yellow",
         marginBottom: 18
     },
-
     filterButton: {
         padding: 8,
         borderRadius: 6,
         backgroundColor: '#ddd',
         marginHorizontal: 5,
     },
-
     radioButtonContainer: {
         flexDirection: 'row',
         alignItems: 'center',
@@ -409,7 +367,6 @@ const styles = StyleSheet.create({
     },
     sortOptionsContainer: {
         width: 140,
-        // height: 180,
         backgroundColor: "white",
         position: 'absolute',
         left: 0,
@@ -433,8 +390,6 @@ const styles = StyleSheet.create({
         gap: 8,
         elevation: 5
     },
-
-
     modalContainer: {
         flex: 1,
         justifyContent: 'center',
@@ -451,7 +406,6 @@ const styles = StyleSheet.create({
     modalTitle: {
         fontSize: 14,
         fontWeight: 'bold',
-        // marginBottom: 10,
     },
     modalOption: {
         padding: 10,
@@ -467,15 +421,9 @@ const styles = StyleSheet.create({
         padding: 10,
         marginTop: 10,
     },
-
-    // activeFilter: {
-    //     backgroundColor: '#007BFF',
-    // },
     filterText: {
         color: '#000',
     },
-
-
     title: {
         fontSize: 24,
         fontWeight: 'bold',
