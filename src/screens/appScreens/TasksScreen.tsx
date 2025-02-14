@@ -1,5 +1,5 @@
-import { Alert, FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
-import React, { useEffect } from 'react'
+import { Alert, FlatList, Modal, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native'
+import React, { useEffect, useState } from 'react'
 import { useAtom } from 'jotai';
 import { userAtom } from '../../jotaiStores/userAtomStore';
 import { useIsFocused, useNavigation } from '@react-navigation/native';
@@ -14,6 +14,7 @@ import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityI
 import Ionicons from 'react-native-vector-icons/Ionicons';
 
 import { AppBottomTabNavigatorParamsList } from '../../navigations/AppNavigation';
+import { backgroundColors, textColors } from '../../constants/colors';
 
 type AuthStackNavigationProp = BottomTabNavigationProp<AppBottomTabNavigatorParamsList, "Tasks-Screen">;
 
@@ -22,7 +23,20 @@ const TasksScreen = () => {
     const [tasks, setTasks] = useAtom(userTaskAtom);
     const isFocused = useIsFocused();
 
+    const [searchQuery, setSearchQuery] = useState<string>("");
+    const [selectedFilterStatus, setSelectedFilterStatus] = useState<"Pending" | "Completed" | "">("");
+    const [selectedFilterPriority, setSelectedFilterPriority] = useState<"Low" | "Medium" | "High" | "">("");
+
     const navigation = useNavigation<AuthStackNavigationProp>();
+
+    const [newTasks, setNewTasks] = useState<taskInterface[]>([]);
+
+    const [filterModalVisible, setFilterModalVisible] = useState(false);
+    const [sortModalVisible, setSortModalVisible] = useState(false);
+
+    const [sortBy, setSortBy] = useState<"Earliest" | "Oldest" | "">("");
+
+    // const [filterBy, setFilterBy] = useState("")
 
     useEffect(() => {
         const getTasks = async () => {
@@ -34,14 +48,19 @@ const TasksScreen = () => {
                     .equalTo(userData?.uid)
                     .on('value', (snapshot) => {
                         const tasksData = snapshot.val();
+                        console.log("tasksData", tasksData)
                         if (tasksData) {
+                            console.log("here")
                             const tasksArray = Object.keys(tasksData).map((key) => ({
                                 id: key,
                                 ...tasksData[key],
                             }));
+                            console.log("tasksArray", tasksArray)
                             setTasks(tasksArray);
+                            setNewTasks(tasksArray);
                         } else {
                             setTasks([]);
+                            setNewTasks([]);
                         }
                     });
             } catch (error) {
@@ -50,8 +69,10 @@ const TasksScreen = () => {
         }
 
         if (tasks?.length === 0) {
+            console.log("0");
             getTasks();
         }
+        setNewTasks(tasks);
     }, [isFocused]);
 
     const handleEdit = (task: taskInterface) => {
@@ -126,11 +147,195 @@ const TasksScreen = () => {
         )
     };
 
+    const handleFilter = (FilterBy: string, Value: string) => {
+        if (FilterBy === "Priority") {
+            const filteredTasks = tasks.filter((task) => {
+                return task.priority === Value;
+            });
+            console.log("filteredTasks:", filteredTasks)
+            setNewTasks(filteredTasks);
+        } else if (FilterBy === "Status") {
+            const filteredTasks = tasks.filter((task) => {
+                return task.completed === (Value === "Pending" ? false : true);
+            });
+            setNewTasks(filteredTasks);
+        } else if (selectedFilterStatus.length > 0 && selectedFilterPriority?.length > 0) {
+            const filteredTasks = tasks.filter((task) => {
+                return (task.completed === (selectedFilterStatus === "Pending" ? false : true)) && (task.priority === selectedFilterPriority);
+            });
+            setNewTasks(filteredTasks);
+        }
+    }
+
+    const handleSort = (SortBy: string) => {
+        if (SortBy === "Earliest") {
+            // Earliest
+            // Sort by dueDate (ascending)
+            newTasks.sort((a, b) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime());
+
+            console.log("Ascending Order:", tasks);
+        } else if (SortBy === "Oldest") {
+            // Sort by dueDate (descending)
+            newTasks.sort((a, b) => new Date(b.dueDate).getTime() - new Date(a.dueDate).getTime());
+
+            console.log("Descending Order:", tasks);
+        }
+    }
+
+    console.log("newTasks", newTasks)
+
+
     return (
         <View style={styles.container}>
             <Text style={styles.title}>My Tasks</Text>
+
+            <View style={styles?.searchContainer}>
+                <MaterialIcons name="search" size={24}
+                    // color="#1F75FE"
+                    color={textColors?.teriaryColor}
+                />
+                <TextInput
+                    style={styles.searchBar}
+                    placeholder="Search tasks..."
+                    value={searchQuery}
+                    placeholderTextColor={textColors?.teriaryColor}
+                    onChangeText={(text) => {
+                        console.log(text);
+                        if (text?.length > 0) {
+                            const searchedTask = tasks.filter((task) => {
+                                console.log("task", task);
+                                return task.title.includes(text);
+                            });
+                            console.log("searchedTask", searchedTask);
+                            setNewTasks(searchedTask);
+                        }
+                        else {
+                            setNewTasks(tasks);
+                        }
+                        setSearchQuery(text);
+                    }}
+                />
+            </View>
+
+            {/* Filter Button */}
+            <View style={styles?.filterContainer}>
+                <View style={styles?.filterSortBtnsCont}>
+                    <TouchableOpacity style={styles.filterButton} onPress={() => setSortModalVisible(prev => !prev)}>
+                        <Text style={styles.filterText}>Sort Tasks</Text>
+                    </TouchableOpacity>
+
+                    <TouchableOpacity style={styles.filterButton} onPress={() => setFilterModalVisible(prev => !prev)}>
+                        <Text style={styles.filterText}>Filter Tasks</Text>
+                    </TouchableOpacity>
+                </View>
+
+                {/* Sort  */}
+                {sortModalVisible && <View style={styles.sortOptionsContainer}>
+                    <Text style={styles.modalTitle}>Due Date</Text>
+                    <TouchableOpacity
+                        onPress={() => {
+                            setSortBy('Earliest');
+                            setSortModalVisible(false);
+                            handleSort("Earliest");
+                        }}
+                    >
+                        <View style={styles.radioButtonContainer}>
+                            <View style={[styles.radioButton, sortBy === "Earliest" && styles.radioButtonSelected]} />
+                            <Text style={styles.radioLabel}>Earliest</Text>
+                        </View>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                        onPress={() => {
+                            setSortBy("Oldest");
+                            setSortModalVisible(false);
+                            handleSort("Oldest");
+                        }}
+                    >
+                        <View style={styles.radioButtonContainer}>
+                            <View style={[styles.radioButton, sortBy === "Oldest" && styles.radioButtonSelected]} />
+                            <Text style={styles.radioLabel}>Oldest</Text>
+                        </View>
+                    </TouchableOpacity>
+                </View>}
+
+                {/* Filter Modal */}
+                {filterModalVisible && <View style={styles.filterOptionsContainer}>
+                    <Text style={styles.modalTitle}>Status</Text>
+                    <TouchableOpacity
+                        onPress={() => {
+                            setSelectedFilterStatus('Pending');
+                            setFilterModalVisible(false);
+                            handleFilter("Status", "Pending");
+                        }}
+                    >
+                        <View style={styles.radioButtonContainer}>
+                            <View style={[styles.radioButton, selectedFilterStatus === "Pending" && styles.radioButtonSelected]} />
+                            <Text style={styles.radioLabel}>Pending</Text>
+                        </View>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                        onPress={() => {
+                            setSelectedFilterStatus('Completed'); setFilterModalVisible(false);
+                            handleFilter("Status", "Completed");
+                        }}
+                    >
+                        <View style={styles.radioButtonContainer}>
+                            <View style={[styles.radioButton, selectedFilterStatus === "Completed" && styles.radioButtonSelected]} />
+                            <Text style={styles.radioLabel}>Completed</Text>
+                        </View>
+                    </TouchableOpacity>
+                    <Text style={styles.modalTitle}>Priority</Text>
+                    <TouchableOpacity
+                        onPress={() => {
+                            setSelectedFilterPriority('Low'); setFilterModalVisible(false);
+                            handleFilter("Priority", "Low");
+                        }}
+                    >
+                        <View style={styles.radioButtonContainer}>
+                            <View style={[styles.radioButton, selectedFilterPriority === "Low" && styles.radioButtonSelected]} />
+                            <Text style={styles.radioLabel}>Low</Text>
+                        </View>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                        onPress={() => {
+                            setSelectedFilterPriority('Medium');
+                            setFilterModalVisible(false);
+                            handleFilter("Priority", "Medium");
+                        }}
+                    >
+                        <View style={styles.radioButtonContainer}>
+                            <View style={[styles.radioButton, selectedFilterPriority === "Medium" && styles.radioButtonSelected]} />
+                            <Text style={styles.radioLabel}>Medium</Text>
+                        </View>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                        onPress={() => {
+                            setSelectedFilterPriority('High');
+                            setFilterModalVisible(false);
+                            handleFilter("Priority", "High");
+                        }}
+                    >
+                        <View style={styles.radioButtonContainer}>
+                            <View style={[styles.radioButton, selectedFilterPriority === "High" && styles.radioButtonSelected]} />
+                            <Text style={styles.radioLabel}>High</Text>
+                        </View>
+                    </TouchableOpacity>
+
+
+                    {/* <TouchableOpacity onPress={() => { setSelectedFilter('Pending'); setFilterModalVisible(false); }} style={styles.modalOption}>
+                        <Text style={styles.modalText}>Pending</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity onPress={() => { setSelectedFilter('Completed'); setFilterModalVisible(false); }} style={styles.modalOption}>
+                        <Text style={styles.modalText}>Completed</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity onPress={() => setFilterModalVisible(false)} style={styles.modalClose}>
+                        <Text style={styles.modalText}>Close</Text>
+                    </TouchableOpacity> */}
+                </View>}
+            </View>
+
             <FlatList
-                data={tasks}
+                data={newTasks}
                 keyExtractor={(item) => item.id}
                 renderItem={renderTaskCard}
                 style={styles.taskList}
@@ -147,6 +352,130 @@ const styles = StyleSheet.create({
         backgroundColor: '#f4f4f4',
         padding: 20,
     },
+    searchContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginBottom: 20,
+        borderRadius: 8,
+        backgroundColor: '#fff',
+        // padding: 10,
+        paddingHorizontal: 8,
+    },
+    searchBar: {
+        flex: 1,
+        height: 40,
+    },
+
+    // filter 
+    filterContainer: {
+        // flexDirection: 'row',
+        // justifyContent: 'center',
+        // flexWrap: 'wrap',
+        // marginBottom: 10,
+        // backgroundColor: 'red',
+        position: 'relative'
+    },
+    filterSortBtnsCont: {
+        flexDirection: "row",
+        justifyContent: "space-between",
+        // backgroundColor: "yellow",
+        marginBottom: 18
+    },
+
+    filterButton: {
+        padding: 8,
+        borderRadius: 6,
+        backgroundColor: '#ddd',
+        marginHorizontal: 5,
+    },
+
+    radioButtonContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+    },
+    radioButton: {
+        width: 16,
+        height: 16,
+        borderRadius: 10,
+        borderWidth: 2,
+        borderColor: "#1F75FE",
+        marginRight: 5,
+    },
+    radioButtonSelected: {
+        backgroundColor: "#1F75FE",
+    },
+    radioLabel: {
+        fontSize: 14,
+    },
+    sortOptionsContainer: {
+        width: 140,
+        // height: 180,
+        backgroundColor: "white",
+        position: 'absolute',
+        left: 0,
+        zIndex: 1,
+        borderRadius: 8,
+        padding: 16,
+        top: 40,
+        gap: 8,
+        elevation: 5
+    },
+    filterOptionsContainer: {
+        width: 140,
+        // height: 180,
+        backgroundColor: "white",
+        position: 'absolute',
+        right: 0,
+        zIndex: 1,
+        borderRadius: 8,
+        padding: 16,
+        top: 40,
+        gap: 8,
+        elevation: 5
+    },
+
+
+    modalContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: 'rgba(0,0,0,0.5)',
+    },
+    modalContent: {
+        width: 250,
+        backgroundColor: '#fff',
+        padding: 20,
+        borderRadius: 10,
+        alignItems: 'center',
+    },
+    modalTitle: {
+        fontSize: 14,
+        fontWeight: 'bold',
+        // marginBottom: 10,
+    },
+    modalOption: {
+        padding: 10,
+        width: '100%',
+        alignItems: 'center',
+        borderBottomWidth: 1,
+        borderBottomColor: '#ddd',
+    },
+    modalText: {
+        fontSize: 16,
+    },
+    modalClose: {
+        padding: 10,
+        marginTop: 10,
+    },
+
+    // activeFilter: {
+    //     backgroundColor: '#007BFF',
+    // },
+    filterText: {
+        color: '#000',
+    },
+
+
     title: {
         fontSize: 24,
         fontWeight: 'bold',
