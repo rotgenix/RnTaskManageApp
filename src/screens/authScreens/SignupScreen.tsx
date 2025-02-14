@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert } from 'react-native';
 import { backgroundColors, textColors } from '../../constants/colors';
 import { AuthStackNavigatorParamsList } from '../../navigations/AuthStackNavigation';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { useNavigation } from '@react-navigation/native';
+
+import auth from '@react-native-firebase/auth';
 
 type AuthStackNavigationProp = StackNavigationProp<AuthStackNavigatorParamsList, "Signup-Screen">;
 
@@ -13,6 +15,28 @@ const SignupScreen = () => {
     const [confirmPassword, setConfirmPassword] = useState('');
 
     const navigation = useNavigation<AuthStackNavigationProp>();
+
+    const handleSignup = async () => {
+        auth()
+            .createUserWithEmailAndPassword(email, password)
+            .then((res) => {
+                console.log("sign up res:", res);
+                Alert.alert("User Sign up successs");
+                console.log('User account created & signed in!');
+            })
+            .catch(error => {
+                console.log("sign up error:", error);
+
+                if (error.code === 'auth/email-already-in-use') {
+                    console.log('That email address is already in use!');
+                }
+
+                if (error.code === 'auth/invalid-email') {
+                    console.log('That email address is invalid!');
+                }
+                // console.error(error);
+            });
+    }
 
     return (
         <View style={styles.container}>
@@ -46,7 +70,7 @@ const SignupScreen = () => {
                 secureTextEntry
             /> */}
 
-            <TouchableOpacity style={styles.button}>
+            <TouchableOpacity style={styles.button} onPress={handleSignup}>
                 <Text style={styles.buttonText}>Sign Up</Text>
             </TouchableOpacity>
 
