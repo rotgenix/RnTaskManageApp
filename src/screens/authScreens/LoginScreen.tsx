@@ -1,4 +1,4 @@
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native'
+import { Alert, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 import React, { useState } from 'react'
 import { backgroundColors, textColors } from '../../constants/colors'
 import { TextInput } from 'react-native-gesture-handler';
@@ -6,6 +6,7 @@ import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { AuthStackNavigatorParamsList } from '../../navigations/AuthStackNavigation';
 
+import auth from '@react-native-firebase/auth';
 
 type AuthStackNavigationProp = StackNavigationProp<AuthStackNavigatorParamsList, "Login-Screen">;
 
@@ -14,6 +15,29 @@ const LoginScreen = () => {
     const [password, setPassword] = useState('');
 
     const navigation = useNavigation<AuthStackNavigationProp>();
+
+    const handleLogin = async () => {
+        // signInWithEmailAndPassword
+        auth()
+            .signInWithEmailAndPassword(email, password)
+            .then((res) => {
+                console.log("login res:", res);
+                Alert.alert("Login successs");
+                console.log('Logged in!');
+            })
+            .catch(error => {
+                console.log("login error:", error);
+
+                // if (error.code === 'auth/email-already-in-use') {
+                //     console.log('That email address is already in use!');
+                // }
+
+                // if (error.code === 'auth/invalid-email') {
+                //     console.log('That email address is invalid!');
+                // }
+                // console.error(error);
+            });
+    }
 
     return (
         <View style={styles.container}>
@@ -38,7 +62,7 @@ const LoginScreen = () => {
                 secureTextEntry
             />
 
-            <TouchableOpacity style={styles.button}>
+            <TouchableOpacity style={styles.button} onPress={handleLogin}>
                 <Text style={styles.buttonText}>Log in</Text>
             </TouchableOpacity>
 
