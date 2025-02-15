@@ -17,6 +17,7 @@ import { AppBottomTabNavigatorParamsList } from '../../navigations/AppNavigation
 import { backgroundColors, textColors } from '../../constants/colors';
 import SplashScreen from 'react-native-splash-screen';
 import { showToast } from '../../utils/ToastMessage';
+import NoTaskScreen from '../../components/NoTasks';
 
 type AppNavigationProp = BottomTabNavigationProp<AppBottomTabNavigatorParamsList, "Tasks-Screen">;
 
@@ -194,6 +195,8 @@ const TasksScreen = () => {
         <View style={styles.container}>
             <Text style={styles.title}>My Tasks</Text>
 
+            {/* {newTasks.length > 0 &&} */}
+
             <View style={styles?.searchContainer}>
                 <MaterialIcons name="search" size={24}
                     color={textColors?.teriaryColor}
@@ -324,12 +327,14 @@ const TasksScreen = () => {
                 </View>}
             </View>
 
-            <FlatList
+            {newTasks && newTasks.length > 0 && <FlatList
                 data={newTasks}
                 keyExtractor={(item) => item.id}
                 renderItem={renderTaskCard}
                 style={styles.taskList}
-            />
+            />}
+
+            {newTasks.length === 0 && <NoTaskScreen />}
         </View>
     );
 }
