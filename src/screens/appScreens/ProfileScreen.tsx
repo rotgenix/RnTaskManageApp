@@ -3,7 +3,6 @@ import { View, Text, Image, TouchableOpacity, StyleSheet } from 'react-native';
 import { useAtom } from 'jotai';
 import { isLoggedInAtom, userAtom } from '../../jotaiStores/userAtomStore';
 import auth from '@react-native-firebase/auth';
-import { useNavigation } from '@react-navigation/native';
 import { showToast } from '../../utils/ToastMessage';
 
 import FontAwesome5 from 'react-native-vector-icons/FontAwesome5'
@@ -12,7 +11,6 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const ProfileScreen = () => {
     const [userData, setUserData] = useAtom(userAtom);
-    const navigation = useNavigation();
     const [isLoggedIn, setIsLoggedIn] = useAtom<boolean>(isLoggedInAtom);
 
     const handleLogout = async () => {
@@ -26,7 +24,7 @@ const ProfileScreen = () => {
                 type: "success"
             });
         } catch (error) {
-            console.error("Logout Error: ", error);
+            // console.error("Logout Error: ", error);
             showToast({
                 text1: "Failed to Log out.",
                 text2: "Please try again.",

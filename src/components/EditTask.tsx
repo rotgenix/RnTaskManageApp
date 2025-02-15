@@ -7,8 +7,6 @@ import { showToast } from '../utils/ToastMessage';
 import database, { update } from '@react-native-firebase/database';
 import { useAtom } from 'jotai';
 
-import Entypo from 'react-native-vector-icons/Entypo';
-import Ionicons from 'react-native-vector-icons/Ionicons';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 
@@ -57,8 +55,6 @@ const EditTask = ({ completed,
 
     const handleUpdate = async () => {
         try {
-            console.log("updatedTask", updatedTask);
-
             const taskRef = database().ref(`tasks/${id}`);
 
             taskRef
@@ -92,7 +88,7 @@ const EditTask = ({ completed,
                     });
                 });
         } catch (error) {
-            console.log(error)
+            // console.log(error)
         }
     }
 
@@ -127,7 +123,8 @@ const EditTask = ({ completed,
                 />
 
                 <TouchableOpacity onPress={() => setShowDatePicker(true)} style={styles.input}>
-                    <Text>{String(upDueDate)}</Text>
+                    {/* <Text>{String(upDueDate)}</Text> */}
+                    <Text>{(upDueDate).toISOString().split("T")[0]}</Text>
                 </TouchableOpacity>
 
                 {showDatePicker && (
@@ -143,7 +140,6 @@ const EditTask = ({ completed,
                     <TouchableOpacity
                         key={"Low"}
                         onPress={() => {
-                            console.log("Low");
                             setUpdatedTask(prev => ({
                                 ...prev, priority: "Low"
                             }))
@@ -158,7 +154,6 @@ const EditTask = ({ completed,
                     <TouchableOpacity
                         key={"Medium"}
                         onPress={() => {
-                            console.log("Medium");
                             setUpdatedTask(prev => ({
                                 ...prev, priority: "Medium"
                             }))
@@ -173,7 +168,6 @@ const EditTask = ({ completed,
                     <TouchableOpacity
                         key={"High"}
                         onPress={() => {
-                            console.log("High");
                             setUpdatedTask(prev => ({
                                 ...prev, priority: "High"
                             }))

@@ -9,7 +9,6 @@ import auth from '@react-native-firebase/auth';
 import { useAtom } from 'jotai';
 import { isLoggedInAtom, userAtom } from '../../jotaiStores/userAtomStore';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import SplashScreen from 'react-native-splash-screen';
 import { showToast } from '../../utils/ToastMessage';
 
 type AuthStackNavigationProp = StackNavigationProp<AuthStackNavigatorParamsList, "Signup-Screen">;
@@ -41,7 +40,7 @@ const SignupScreen = () => {
                 setIsLoggedIn(true);
             })
             .catch(error => {
-                console.log("error", error)
+                // console.log("error", error)
                 if (error.code === 'auth/email-already-in-use') {
                     showToast({ text1: "Email already registered!", type: "error" });
                 }
@@ -63,12 +62,6 @@ const SignupScreen = () => {
                 }
             });
     }
-
-    // useEffect(() => {
-    //     setTimeout(() => {
-    //         SplashScreen.hide();
-    //     }, 500);
-    // }, [])
 
     return (
         <View style={styles.container}>

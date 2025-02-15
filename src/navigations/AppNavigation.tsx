@@ -42,7 +42,6 @@ const AppNavigation = () => {
                         </Text>
                     },
                     tabBarIcon: ({ focused }) => {
-                        console.log("focused", focused)
                         return <FontAwesome5
                             name="tasks"
                             size={20}
@@ -51,6 +50,7 @@ const AppNavigation = () => {
                     },
                 }}
             />
+
             <AppBoottomTabNavigator.Screen
                 name="Create-Task-Screen"
                 component={CreateTaskScreen}
@@ -65,7 +65,6 @@ const AppNavigation = () => {
                         </Text>
                     },
                     tabBarIcon: ({ focused }) => {
-                        console.log("focused", focused)
                         return <MaterialIcons
                             name="create"
                             size={24}
@@ -74,6 +73,7 @@ const AppNavigation = () => {
                     },
                 }}
             />
+
             <AppBoottomTabNavigator.Screen
                 name="Profile-Screen"
                 component={ProfileScreen}
@@ -88,7 +88,6 @@ const AppNavigation = () => {
                         </Text>
                     },
                     tabBarIcon: ({ focused }) => {
-                        console.log("focused", focused)
                         return <FontAwesome5
                             name="user-circle"
                             size={22}

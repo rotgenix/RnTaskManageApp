@@ -1,19 +1,17 @@
 import { useAtom } from 'jotai';
 import React, { useEffect, useState } from 'react'
-import database, { update } from '@react-native-firebase/database';
+import database from '@react-native-firebase/database';
 import { useIsFocused } from '@react-navigation/native';
-import DateTimePicker, { DateTimePickerEvent } from '@react-native-community/datetimepicker';
-import { FlatList, Modal, Platform, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native'
+import { DateTimePickerEvent } from '@react-native-community/datetimepicker';
+import { FlatList, Modal, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native'
 
 import { userAtom } from '../../jotaiStores/userAtomStore';
 import { taskInterface, userTaskAtom } from '../../jotaiStores/userTasksStore';
 
-import Entypo from 'react-native-vector-icons/Entypo';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 
-// Entypo
 import { textColors } from '../../constants/colors';
 import NoTaskScreen from '../../components/NoTasks';
 import { showToast } from '../../utils/ToastMessage';
@@ -66,7 +64,6 @@ const TasksScreen = () => {
                             }));
 
                             tasksArray.sort((a, b) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime());
-                            console.log("tasksArray", tasksArray)
 
                             setTasks(tasksArray);
                             setNewTasks(tasksArray);
@@ -76,7 +73,7 @@ const TasksScreen = () => {
                         }
                     });
             } catch (error) {
-                console.log("Error while fetching tasks");
+                // console.log("Error while fetching tasks");
             }
         }
 
@@ -91,9 +88,6 @@ const TasksScreen = () => {
         setUpdatedTask({
             ...task
         });
-
-        // setEditTaskId(task.id);
-        // setDueDate(new Date(task.dueDate)); // Initialize dueDate with the task's due date
     };
 
     const handleDelete = (id: string) => {
@@ -106,7 +100,7 @@ const TasksScreen = () => {
                 showToast({ text1: "Task Deleted Successfully", type: "success" });
             })
             .catch((error) => {
-                console.error('Error deleting task: ', error);
+                // console.error('Error deleting task: ', error);
                 showToast({
                     text1: "Failed to deleted task",
                     text2: "Please try again",
@@ -133,7 +127,7 @@ const TasksScreen = () => {
                 showToast({ text1: `Task Marked as ${task?.completed ? "Incomplete" : "Complete"}!`, type: "success" });
             })
             .catch((error) => {
-                console.error('Error updating task: ', error);
+                // console.error('Error updating task: ', error);
                 showToast({
                     text1: "Failed to Mark task as Complete!",
                     text2: "Please try again",
@@ -142,66 +136,16 @@ const TasksScreen = () => {
             });
     };
 
-    const [showDatePicker, setShowDatePicker] = useState(false);
-
-    const onChangeDate = (event: DateTimePickerEvent, selectedDate: Date | undefined) => {
-        // const currentDate = selectedDate?.toISOString() || dueDate;
-        // console.log("currentDate", currentDate)
-        // setDueDate(new Date(currentDate));
-        // setShowDatePicker(false);
-
-
-        const currentDate = selectedDate || dueDate;
-        setDueDate(currentDate);
-        setShowDatePicker(prev => !prev);
-    };
-
-    const handleUpdate = async () => {
-        try {
-            console.log("updatedTask", updatedTask);
-
-            const taskRef = database().ref(`tasks/${editTaskId}`);
-
-            taskRef
-                .update({
-                    ...updatedTask,
-                    dueDate: dueDate.toISOString()
-                })
-                .then((res) => {
-                    showToast({
-                        text1: "Task updated Successfully!",
-                        type: "success"
-                    });
-
-
-                    setTasks(prev =>
-                        prev.map(task =>
-                            task.id === editTaskId ? { ...updatedTask, } : task
-                        )
-                    );
-                    setNewTasks(prev =>
-                        prev.map(task =>
-                            task.id === editTaskId ? { ...updatedTask, } : task
-                        )
-                    );
-                    setEditTaskId("");
-                })
-                .catch((error) => {
-                    console.error('Error updating task: ', error);
-                    showToast({
-                        text1: "Failed to update Task!",
-                        text2: "Please try again",
-                        type: "error"
-                    });
-                });
-        } catch (error) {
-            console.log(error)
-        }
-    }
-
     const renderTaskCard = ({ item }: {
         item: taskInterface
     }) => {
+        console.log(item?.dueDate);
+        const getDayName = (dateString: string) => {
+            const date = new Date(dateString);
+            return date.toLocaleDateString('en-US', { weekday: 'short' }); // 'Fri'
+        };
+
+        console.log(getDayName("2025-02-28T11:37:00.000Z")); // Output: 'Fri'
 
         return (
             <View style={styles.taskCard}>
@@ -209,8 +153,8 @@ const TasksScreen = () => {
 
                 <Text style={styles.taskDescription}>{item.description}</Text>
 
-                <Text style={styles.taskDueDate}>Due Date: {item?.dueDate} {"("}
-                    {/* {getShortDayName(item?.dueDate)} */}
+                <Text style={styles.taskDueDate}>Due Date: {item?.dueDate.split("T")[0]} {"("}
+                    {getDayName(item?.dueDate)}
                     {")"}</Text>
 
                 <Text style={[
@@ -263,17 +207,11 @@ const TasksScreen = () => {
 
     const handleSort = (SortBy: string) => {
         if (SortBy === "Earliest") {
-            // newTasks.sort((a, b) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime());
             const tasks = newTasks.sort((a, b) => new Date(a?.dueDate).getTime() - new Date(b?.dueDate).getTime());
-            console.log("tasks", tasks);
         } else if (SortBy === "Oldest") {
-            // newTasks.sort((a, b) => new Date(b.dueDate).getTime() - new Date(a.dueDate).getTime());
             const tasks = newTasks.sort((a, b) => new Date(b?.dueDate).getTime() - new Date(a?.dueDate).getTime());
-            console.log("tasks", tasks);
         }
     }
-
-    // console.log("updatedTask", updatedTask)
 
     return (
         <View style={styles.container}>

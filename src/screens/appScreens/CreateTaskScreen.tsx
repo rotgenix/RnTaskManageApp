@@ -73,7 +73,7 @@ const CreateTaskScreen = ({ }) => {
                     navigation.navigate("Tasks-Screen");
                 })
                 .catch((error) => {
-                    console.log("error", error);
+                    // console.log("error", error);
                     showToast({
                         text1: "Error while creating Task",
                         text2: "Please try again",
@@ -81,7 +81,7 @@ const CreateTaskScreen = ({ }) => {
                     });
                 });
         } catch (error) {
-            console.log("Error creating task!")
+            // console.log("Error creating task!");
         }
     }
 
@@ -110,7 +110,8 @@ const CreateTaskScreen = ({ }) => {
 
             <Text style={styles.label}>Due Date</Text>
             <TouchableOpacity onPress={showDatepicker} style={styles.input}>
-                <Text>{String(dueDate)}</Text>
+                {/* <Text>{String(dueDate)}</Text> */}
+                <Text>{(dueDate).toISOString().split("T")[0]}</Text>
             </TouchableOpacity>
 
             {showDatePicker && (

@@ -26,7 +26,7 @@ const LoginScreen = () => {
         auth()
             .signInWithEmailAndPassword(email, password)
             .then(async (res) => {
-                console.log("Login Success!");
+                // console.log("Login Success!");
                 showToast({ text1: "Logged in Successfully" });
                 setUserData({
                     uid: res?.user?.uid,
@@ -41,7 +41,7 @@ const LoginScreen = () => {
                 setIsLoggedIn(true);
             })
             .catch(error => {
-                console.log("Login Error", error);
+                // console.log("Login Error", error);
                 if (error?.code === "auth/invalid-credential") {
                     showToast({
                         type: "error",
