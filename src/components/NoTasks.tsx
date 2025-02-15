@@ -12,13 +12,6 @@ const NoTaskScreen = () => {
 
     return (
         <View style={styles.container}>
-            {/* Illustration */}
-            {/* <Image
-                source={require('../../assets/no-tasks.png')}
-                style={styles.image}
-                resizeMode="contain"
-            /> */}
-
             <Text style={styles.title}>No Tasks Available</Text>
             <Text style={styles.subtitle}>Please Change Filter or Create a new Task!!!</Text>
 

@@ -1,13 +1,14 @@
-import React, { useEffect, useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, TouchableWithoutFeedback, Platform } from 'react-native';
-import DateTimePicker, { DateTimePickerEvent } from '@react-native-community/datetimepicker';
-import { backgroundColors, textColors } from '../../constants/colors';
 import { useAtom } from 'jotai';
-import { userAtom } from '../../jotaiStores/userAtomStore';
+import React, { useState } from 'react';
 import database from '@react-native-firebase/database';
-import { showToast } from '../../utils/ToastMessage';
 import { useNavigation } from '@react-navigation/native';
 import { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
+import DateTimePicker, { DateTimePickerEvent } from '@react-native-community/datetimepicker';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Platform } from 'react-native';
+
+import { showToast } from '../../utils/ToastMessage';
+import { userAtom } from '../../jotaiStores/userAtomStore';
+import { backgroundColors, textColors } from '../../constants/colors';
 import { AppBottomTabNavigatorParamsList } from '../../navigations/AppNavigation';
 
 type AppNavigationProp = BottomTabNavigationProp<AppBottomTabNavigatorParamsList, "Tasks-Screen">;
@@ -39,7 +40,7 @@ const CreateTaskScreen = ({ }) => {
             const isValidString = (str: string) => {
                 return typeof str === 'string' && str.trim().length > 0;
             };
-            console.log(isValidString(priority))
+
             if (!isValidString(title) || !isValidString(description) || !isValidString(priority)) {
                 showToast({
                     text1: "Please Fill all the fields!!!",
@@ -109,7 +110,7 @@ const CreateTaskScreen = ({ }) => {
 
             <Text style={styles.label}>Due Date</Text>
             <TouchableOpacity onPress={showDatepicker} style={styles.input}>
-                <Text>{dueDate.toLocaleDateString()}</Text>
+                <Text>{String(dueDate)}</Text>
             </TouchableOpacity>
 
             {showDatePicker && (
@@ -123,14 +124,26 @@ const CreateTaskScreen = ({ }) => {
 
             <Text style={styles.label}>Task Priority</Text>
             <View style={styles.radioContainer}>
-                {['Low', 'Medium', 'High'].map((level) => (
-                    <TouchableWithoutFeedback key={level} onPress={() => setPriority(level)}>
-                        <View style={styles.radioButtonContainer}>
-                            <View style={[styles.radioButton, priority === level && styles.radioButtonSelected]} />
-                            <Text style={styles.radioLabel}>{level}</Text>
-                        </View>
-                    </TouchableWithoutFeedback>
-                ))}
+                <TouchableOpacity key={"Low"} onPress={() => setPriority("Low")}>
+                    <View style={styles.radioButtonContainer}>
+                        <View style={[styles.radioButton, priority === "Low" && styles.radioButtonSelected]} />
+                        <Text style={styles.radioLabel}>Low</Text>
+                    </View>
+                </TouchableOpacity>
+
+                <TouchableOpacity key={"Medium"} onPress={() => setPriority("Medium")}>
+                    <View style={styles.radioButtonContainer}>
+                        <View style={[styles.radioButton, priority === "Medium" && styles.radioButtonSelected]} />
+                        <Text style={styles.radioLabel}>Medium</Text>
+                    </View>
+                </TouchableOpacity>
+
+                <TouchableOpacity key={"High"} onPress={() => setPriority("High")}>
+                    <View style={styles.radioButtonContainer}>
+                        <View style={[styles.radioButton, priority === "High" && styles.radioButtonSelected]} />
+                        <Text style={styles.radioLabel}>High</Text>
+                    </View>
+                </TouchableOpacity>
             </View>
 
             <TouchableOpacity style={styles.button} onPress={handleCreateTask}>

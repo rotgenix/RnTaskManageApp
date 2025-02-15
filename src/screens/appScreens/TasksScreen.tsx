@@ -1,43 +1,53 @@
-import { Alert, FlatList, Modal, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native'
-import React, { useEffect, useState } from 'react'
 import { useAtom } from 'jotai';
-import { userAtom } from '../../jotaiStores/userAtomStore';
-import { useIsFocused, useNavigation } from '@react-navigation/native';
+import React, { useEffect, useState } from 'react'
+import database, { update } from '@react-native-firebase/database';
+import { useIsFocused } from '@react-navigation/native';
+import DateTimePicker, { DateTimePickerEvent } from '@react-native-community/datetimepicker';
+import { FlatList, Modal, Platform, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native'
 
-import database from '@react-native-firebase/database';
+import { userAtom } from '../../jotaiStores/userAtomStore';
 import { taskInterface, userTaskAtom } from '../../jotaiStores/userTasksStore';
 
-import type { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
-
+import Entypo from 'react-native-vector-icons/Entypo';
+import Ionicons from 'react-native-vector-icons/Ionicons';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
-import Ionicons from 'react-native-vector-icons/Ionicons';
 
-import { AppBottomTabNavigatorParamsList } from '../../navigations/AppNavigation';
-import { backgroundColors, textColors } from '../../constants/colors';
-import SplashScreen from 'react-native-splash-screen';
-import { showToast } from '../../utils/ToastMessage';
+// Entypo
+import { textColors } from '../../constants/colors';
 import NoTaskScreen from '../../components/NoTasks';
-
-type AppNavigationProp = BottomTabNavigationProp<AppBottomTabNavigatorParamsList, "Tasks-Screen">;
+import { showToast } from '../../utils/ToastMessage';
+import EditTask from '../../components/EditTask';
 
 const TasksScreen = () => {
+    const isFocused = useIsFocused();
     const [userData, setUserData] = useAtom(userAtom);
     const [tasks, setTasks] = useAtom(userTaskAtom);
-    const isFocused = useIsFocused();
+    const [newTasks, setNewTasks] = useState<taskInterface[]>([]);
 
     const [searchQuery, setSearchQuery] = useState<string>("");
     const [selectedFilterStatus, setSelectedFilterStatus] = useState<"Pending" | "Completed" | "">("");
     const [selectedFilterPriority, setSelectedFilterPriority] = useState<"Low" | "Medium" | "High" | "">("");
 
-    const navigation = useNavigation<AppNavigationProp>();
-
-    const [newTasks, setNewTasks] = useState<taskInterface[]>([]);
-
     const [filterModalVisible, setFilterModalVisible] = useState(false);
     const [sortModalVisible, setSortModalVisible] = useState(false);
-
     const [sortBy, setSortBy] = useState<"Earliest" | "Oldest" | "">("");
+    const [editTaskId, setEditTaskId] = useState<string>("");
+
+    const [dueDate, setDueDate] = useState<Date>(new Date());
+
+    const [updatedTask, setUpdatedTask] = useState<taskInterface>({
+        completed: false,
+        createdAt: "",
+        description: "",
+        dueDate: "",
+        id: "",
+        priority: "Low",
+        title: "",
+        uid: "",
+    });
+
+    const [isEdit, setIsEdit] = useState<boolean>(false);
 
     useEffect(() => {
         const getTasks = async () => {
@@ -76,17 +86,14 @@ const TasksScreen = () => {
         setNewTasks(tasks);
     }, [isFocused]);
 
-    // useEffect(() => {
-    //     setTimeout(() => {
-    //         SplashScreen.hide();
-    //     }, 500);
-    // }, [])
-
     const handleEdit = (task: taskInterface) => {
-        navigation.navigate("Create-Task-Screen", {
-            task: task,
-            isEdit: true
+        setIsEdit(prev => !prev);
+        setUpdatedTask({
+            ...task
         });
+
+        // setEditTaskId(task.id);
+        // setDueDate(new Date(task.dueDate)); // Initialize dueDate with the task's due date
     };
 
     const handleDelete = (id: string) => {
@@ -135,26 +142,97 @@ const TasksScreen = () => {
             });
     };
 
+    const [showDatePicker, setShowDatePicker] = useState(false);
+
+    const onChangeDate = (event: DateTimePickerEvent, selectedDate: Date | undefined) => {
+        // const currentDate = selectedDate?.toISOString() || dueDate;
+        // console.log("currentDate", currentDate)
+        // setDueDate(new Date(currentDate));
+        // setShowDatePicker(false);
+
+
+        const currentDate = selectedDate || dueDate;
+        setDueDate(currentDate);
+        setShowDatePicker(prev => !prev);
+    };
+
+    const handleUpdate = async () => {
+        try {
+            console.log("updatedTask", updatedTask);
+
+            const taskRef = database().ref(`tasks/${editTaskId}`);
+
+            taskRef
+                .update({
+                    ...updatedTask,
+                    dueDate: dueDate.toISOString()
+                })
+                .then((res) => {
+                    showToast({
+                        text1: "Task updated Successfully!",
+                        type: "success"
+                    });
+
+
+                    setTasks(prev =>
+                        prev.map(task =>
+                            task.id === editTaskId ? { ...updatedTask, } : task
+                        )
+                    );
+                    setNewTasks(prev =>
+                        prev.map(task =>
+                            task.id === editTaskId ? { ...updatedTask, } : task
+                        )
+                    );
+                    setEditTaskId("");
+                })
+                .catch((error) => {
+                    console.error('Error updating task: ', error);
+                    showToast({
+                        text1: "Failed to update Task!",
+                        text2: "Please try again",
+                        type: "error"
+                    });
+                });
+        } catch (error) {
+            console.log(error)
+        }
+    }
+
     const renderTaskCard = ({ item }: {
         item: taskInterface
     }) => {
+
         return (
             <View style={styles.taskCard}>
                 <Text style={styles.taskTitle}>{item.title}</Text>
+
                 <Text style={styles.taskDescription}>{item.description}</Text>
 
-                <Text style={styles.taskDueDate}>Due Date: {String(item?.dueDate).split("T")[0]} {"("}{new Date(item?.dueDate).toLocaleDateString("en-US", { weekday: "short" })}{")"}</Text>
+                <Text style={styles.taskDueDate}>Due Date: {item?.dueDate} {"("}
+                    {/* {getShortDayName(item?.dueDate)} */}
+                    {")"}</Text>
 
-                <Text style={[styles.taskPriority, styles[item.priority.toLowerCase()]]}>{item.priority}</Text>
+                <Text style={[
+                    styles.taskPriority,
+                    item?.priority === "Low" ? { color: 'green', } :
+                        item?.priority === "Medium" ? { color: "orange" } :
+                            { color: "red" }
+                ]}>
+                    {item.priority}
+                </Text>
+
                 <View style={styles.buttonContainer}>
                     <TouchableOpacity onPress={() => handleEdit(item)} style={[styles?.buttonStyle]}>
                         <MaterialIcons name="edit" size={24} color="#1F75FE" />
                         <Text style={styles?.btnText}>Edit</Text>
                     </TouchableOpacity>
+
                     <TouchableOpacity onPress={() => handleDelete(item.id)} style={[styles?.buttonStyle]}>
                         <MaterialCommunityIcons name="delete" size={24} color="#FF033E" />
                         <Text style={styles?.btnText}>Delete</Text>
                     </TouchableOpacity>
+
                     <TouchableOpacity onPress={() => handleMarkComplete(item)} style={[styles?.buttonStyle]}>
                         {item?.completed ? <Ionicons name="checkmark-done-circle" size={24} color="#32de84" /> : <Ionicons name="checkmark-done-circle-outline" size={24} color="#007BFF" />}
                         <Text style={styles?.btnText}>{item?.completed ? "Done" : "Pending"}</Text>
@@ -185,17 +263,21 @@ const TasksScreen = () => {
 
     const handleSort = (SortBy: string) => {
         if (SortBy === "Earliest") {
-            newTasks.sort((a, b) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime());
+            // newTasks.sort((a, b) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime());
+            const tasks = newTasks.sort((a, b) => new Date(a?.dueDate).getTime() - new Date(b?.dueDate).getTime());
+            console.log("tasks", tasks);
         } else if (SortBy === "Oldest") {
-            newTasks.sort((a, b) => new Date(b.dueDate).getTime() - new Date(a.dueDate).getTime());
+            // newTasks.sort((a, b) => new Date(b.dueDate).getTime() - new Date(a.dueDate).getTime());
+            const tasks = newTasks.sort((a, b) => new Date(b?.dueDate).getTime() - new Date(a?.dueDate).getTime());
+            console.log("tasks", tasks);
         }
     }
+
+    // console.log("updatedTask", updatedTask)
 
     return (
         <View style={styles.container}>
             <Text style={styles.title}>My Tasks</Text>
-
-            {/* {newTasks.length > 0 &&} */}
 
             <View style={styles?.searchContainer}>
                 <MaterialIcons name="search" size={24}
@@ -221,7 +303,6 @@ const TasksScreen = () => {
                 />
             </View>
 
-            {/* Filter Button */}
             <View style={styles?.filterContainer}>
                 <View style={styles?.filterSortBtnsCont}>
                     <TouchableOpacity style={styles.filterButton} onPress={() => setSortModalVisible(prev => !prev)}>
@@ -233,7 +314,6 @@ const TasksScreen = () => {
                     </TouchableOpacity>
                 </View>
 
-                {/* Sort  */}
                 {sortModalVisible && <View style={styles.sortOptionsContainer}>
                     <Text style={styles.modalTitle}>Due Date</Text>
                     <TouchableOpacity
@@ -262,7 +342,6 @@ const TasksScreen = () => {
                     </TouchableOpacity>
                 </View>}
 
-                {/* Filter Modal */}
                 {filterModalVisible && <View style={styles.filterOptionsContainer}>
                     <Text style={styles.modalTitle}>Status</Text>
                     <TouchableOpacity
@@ -335,6 +414,15 @@ const TasksScreen = () => {
             />}
 
             {newTasks.length === 0 && <NoTaskScreen />}
+
+            <Modal
+                visible={isEdit}
+                onRequestClose={() => setIsEdit(prev => !prev)}
+                animationType="slide" // or 'fade', 'none'
+                transparent={true} // Optional: Makes the modal background transparent
+            >
+                <EditTask {...updatedTask} setIsEdit={setIsEdit} />
+            </Modal>
         </View>
     );
 }
@@ -359,7 +447,6 @@ const styles = StyleSheet.create({
         flex: 1,
         height: 40,
     },
-    // filter 
     filterContainer: {
         position: 'relative'
     },
@@ -406,7 +493,6 @@ const styles = StyleSheet.create({
     },
     filterOptionsContainer: {
         width: 140,
-        // height: 180,
         backgroundColor: "white",
         position: 'absolute',
         right: 0,
@@ -515,5 +601,19 @@ const styles = StyleSheet.create({
     btnText: {
         color: "black",
         fontSize: 12
-    }
+    },
+    input: {
+        width: '80%',
+        padding: 10,
+        borderWidth: 1,
+        borderColor: '#ccc',
+        borderRadius: 5,
+        marginBottom: 10,
+    },
+    radioContainer: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        width: '80%',
+        marginBottom: 10,
+    },
 });

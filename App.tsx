@@ -31,7 +31,7 @@ const App = () => {
           }
         }
       } catch (error) {
-        console.log("error", error)
+        // console.log("error", error)
       }
     }
     getData();
@@ -42,8 +42,6 @@ const App = () => {
       SplashScreen.hide();
     }, 300);
   }, []);
-
-  useEffect(() => { }, [userData]);
 
   return (
     <NavigationContainer>

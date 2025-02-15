@@ -4,7 +4,7 @@ export interface taskInterface {
     completed: boolean,
     createdAt: string,
     description: string,
-    dueDate: Date,
+    dueDate: string,
     id: string,
     priority: "Low" | "Medium" | "High",
     title: string,
