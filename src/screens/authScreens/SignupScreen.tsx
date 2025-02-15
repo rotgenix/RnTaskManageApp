@@ -10,6 +10,7 @@ import { useAtom } from 'jotai';
 import { userAtom } from '../../jotaiStores/userAtomStore';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import SplashScreen from 'react-native-splash-screen';
+import { showToast } from '../../utils/ToastMessage';
 
 type AuthStackNavigationProp = StackNavigationProp<AuthStackNavigatorParamsList, "Signup-Screen">;
 
@@ -24,6 +25,7 @@ const SignupScreen = () => {
         auth()
             .createUserWithEmailAndPassword(email, password)
             .then(async (res) => {
+                showToast({ text1: "Signed up Successfully!!!", type: "success" });
                 setUserData({
                     uid: res?.user?.uid,
                     email: res?.user?.email,
@@ -37,12 +39,25 @@ const SignupScreen = () => {
                 }));
             })
             .catch(error => {
+                console.log("error", error)
                 if (error.code === 'auth/email-already-in-use') {
-                    console.log('That email address is already in use!');
+                    showToast({ text1: "Email already registered!", type: "error" });
                 }
-
-                if (error.code === 'auth/invalid-email') {
-                    console.log('That email address is invalid!');
+                else if (error.code === 'auth/invalid-email') {
+                    showToast({
+                        type: "error",
+                        text1: "Invalid Email!",
+                        text2: "Please enter valid email!"
+                    })
+                } else if (error?.code === "auth/weak-password") {
+                    showToast({
+                        type: "error",
+                        text1: "Weak Password!",
+                        text2: "Please enter strong password!"
+                    })
+                }
+                else {
+                    showToast({ text1: "Sign up error!", text2: "Please try again", type: "error" });
                 }
             });
     }
@@ -65,6 +80,7 @@ const SignupScreen = () => {
                 onChangeText={setEmail}
                 keyboardType="email-address"
                 autoCapitalize="none"
+                placeholderTextColor={textColors?.teriaryColor}
             />
 
             <Text style={styles.label}>Password</Text>
@@ -74,6 +90,7 @@ const SignupScreen = () => {
                 value={password}
                 onChangeText={setPassword}
                 secureTextEntry
+                placeholderTextColor={textColors?.teriaryColor}
             />
 
             <TouchableOpacity style={styles.button} onPress={handleSignup}>
@@ -115,6 +132,7 @@ const styles = StyleSheet.create({
         borderColor: '#ccc',
         borderRadius: 5,
         marginBottom: 10,
+        color: "#000"
     },
     button: {
         width: '80%',

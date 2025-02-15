@@ -17,7 +17,7 @@ import { AppBottomTabNavigatorParamsList } from '../../navigations/AppNavigation
 import { backgroundColors, textColors } from '../../constants/colors';
 import SplashScreen from 'react-native-splash-screen';
 
-type AuthStackNavigationProp = BottomTabNavigationProp<AppBottomTabNavigatorParamsList, "Tasks-Screen">;
+type AppNavigationProp = BottomTabNavigationProp<AppBottomTabNavigatorParamsList, "Tasks-Screen">;
 
 const TasksScreen = () => {
     const [userData, setUserData] = useAtom(userAtom);
@@ -28,7 +28,7 @@ const TasksScreen = () => {
     const [selectedFilterStatus, setSelectedFilterStatus] = useState<"Pending" | "Completed" | "">("");
     const [selectedFilterPriority, setSelectedFilterPriority] = useState<"Low" | "Medium" | "High" | "">("");
 
-    const navigation = useNavigation<AuthStackNavigationProp>();
+    const navigation = useNavigation<AppNavigationProp>();
 
     const [newTasks, setNewTasks] = useState<taskInterface[]>([]);
 

@@ -7,6 +7,8 @@ import { useAtom } from 'jotai';
 import { userAtom } from './src/jotaiStores/userAtomStore';
 import SplashScreen from 'react-native-splash-screen';
 
+import Toast from 'react-native-toast-message';
+
 const App = () => {
   const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
   const [userData, setUserData] = useAtom(userAtom);
@@ -41,9 +43,12 @@ const App = () => {
     }, 300);
   }, [])
 
+
+
   return (
     <NavigationContainer>
       {isLoggedIn ? <AppNavigation /> : <AuthStackNavigation />}
+      <Toast />
     </NavigationContainer>
   )
 }
