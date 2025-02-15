@@ -16,6 +16,7 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import { AppBottomTabNavigatorParamsList } from '../../navigations/AppNavigation';
 import { backgroundColors, textColors } from '../../constants/colors';
 import SplashScreen from 'react-native-splash-screen';
+import { showToast } from '../../utils/ToastMessage';
 
 type AppNavigationProp = BottomTabNavigationProp<AppBottomTabNavigatorParamsList, "Tasks-Screen">;
 
@@ -48,10 +49,14 @@ const TasksScreen = () => {
                     .on('value', (snapshot) => {
                         const tasksData = snapshot.val();
                         if (tasksData) {
-                            const tasksArray = Object.keys(tasksData).map((key) => ({
+                            let tasksArray = Object.keys(tasksData).map((key) => ({
                                 id: key,
                                 ...tasksData[key],
                             }));
+
+                            tasksArray.sort((a, b) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime());
+                            console.log("tasksArray", tasksArray)
+
                             setTasks(tasksArray);
                             setNewTasks(tasksArray);
                         } else {
@@ -85,15 +90,20 @@ const TasksScreen = () => {
 
     const handleDelete = (id: string) => {
         setTasks(tasks.filter(task => task.id !== id));
-
+        setNewTasks(newTasks.filter(task => task.id !== id));
         const taskRef = database().ref(`tasks/${id}`);
         taskRef
             .remove()
             .then(() => {
-                Alert.alert("Task Deleted Successfully");
+                showToast({ text1: "Task Deleted Successfully", type: "success" });
             })
             .catch((error) => {
                 console.error('Error deleting task: ', error);
+                showToast({
+                    text1: "Failed to deleted task",
+                    text2: "Please try again",
+                    type: "error"
+                });
             });
     };
 
@@ -112,10 +122,15 @@ const TasksScreen = () => {
         taskRef
             .update({ ...task, completed: !task?.completed })
             .then(() => {
-                console.log('Task updated successfully!');
+                showToast({ text1: `Task Marked as ${task?.completed ? "Incomplete" : "Complete"}!`, type: "success" });
             })
             .catch((error) => {
                 console.error('Error updating task: ', error);
+                showToast({
+                    text1: "Failed to Mark task as Complete!",
+                    text2: "Please try again",
+                    type: "error"
+                });
             });
     };
 

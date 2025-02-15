@@ -7,7 +7,7 @@ import { StackNavigationProp } from '@react-navigation/stack';
 import { AuthStackNavigatorParamsList } from '../../navigations/AuthStackNavigation';
 
 import auth from '@react-native-firebase/auth';
-import { userAtom } from '../../jotaiStores/userAtomStore';
+import { isLoggedInAtom, userAtom } from '../../jotaiStores/userAtomStore';
 import { useAtom } from 'jotai';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { showToast } from '../../utils/ToastMessage';
@@ -18,6 +18,7 @@ const LoginScreen = () => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [userData, setUserData] = useAtom(userAtom);
+    const [isLoggedIn, setIsLoggedIn] = useAtom<boolean>(isLoggedInAtom);
 
     const navigation = useNavigation<AuthStackNavigationProp>();
 
@@ -37,6 +38,7 @@ const LoginScreen = () => {
                     email: res?.user?.email,
                     name: "",
                 }));
+                setIsLoggedIn(true);
             })
             .catch(error => {
                 console.log("Login Error", error);

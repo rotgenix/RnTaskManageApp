@@ -9,3 +9,6 @@ export const userAtom = atom<{
     email: null,
     name: null
 });
+
+
+export const isLoggedInAtom = atom<boolean>(false);

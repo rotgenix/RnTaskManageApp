@@ -4,13 +4,13 @@ import AuthStackNavigation from './src/navigations/AuthStackNavigation'
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import AppNavigation from './src/navigations/AppNavigation';
 import { useAtom } from 'jotai';
-import { userAtom } from './src/jotaiStores/userAtomStore';
+import { isLoggedInAtom, userAtom } from './src/jotaiStores/userAtomStore';
 import SplashScreen from 'react-native-splash-screen';
 
 import Toast from 'react-native-toast-message';
 
 const App = () => {
-  const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
+  const [isLoggedIn, setIsLoggedIn] = useAtom<boolean>(isLoggedInAtom);
   const [userData, setUserData] = useAtom(userAtom);
 
   useEffect(() => {
@@ -35,15 +35,15 @@ const App = () => {
       }
     }
     getData();
-  }, [userData]);
+  }, []);
 
   useEffect(() => {
     setTimeout(() => {
       SplashScreen.hide();
     }, 300);
-  }, [])
+  }, []);
 
-
+  useEffect(() => { }, [userData]);
 
   return (
     <NavigationContainer>

@@ -7,7 +7,7 @@ import { useNavigation } from '@react-navigation/native';
 
 import auth from '@react-native-firebase/auth';
 import { useAtom } from 'jotai';
-import { userAtom } from '../../jotaiStores/userAtomStore';
+import { isLoggedInAtom, userAtom } from '../../jotaiStores/userAtomStore';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import SplashScreen from 'react-native-splash-screen';
 import { showToast } from '../../utils/ToastMessage';
@@ -18,6 +18,7 @@ const SignupScreen = () => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [userData, setUserData] = useAtom(userAtom);
+    const [isLoggedIn, setIsLoggedIn] = useAtom<boolean>(isLoggedInAtom);
 
     const navigation = useNavigation<AuthStackNavigationProp>();
 
@@ -37,6 +38,7 @@ const SignupScreen = () => {
                     email: res?.user?.email,
                     name: "",
                 }));
+                setIsLoggedIn(true);
             })
             .catch(error => {
                 console.log("error", error)

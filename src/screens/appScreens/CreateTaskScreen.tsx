@@ -1,8 +1,7 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, TouchableWithoutFeedback, Platform } from 'react-native';
 import DateTimePicker, { DateTimePickerEvent } from '@react-native-community/datetimepicker';
 import { backgroundColors, textColors } from '../../constants/colors';
-import { createTask } from '../../tasks/tasks';
 import { useAtom } from 'jotai';
 import { userAtom } from '../../jotaiStores/userAtomStore';
 import database from '@react-native-firebase/database';
@@ -37,6 +36,17 @@ const CreateTaskScreen = ({ }) => {
 
     const handleCreateTask = async () => {
         try {
+            const isValidString = (str: string) => {
+                return typeof str === 'string' && str.trim().length > 0;
+            };
+            console.log(isValidString(priority))
+            if (!isValidString(title) || !isValidString(description) || !isValidString(priority)) {
+                showToast({
+                    text1: "Please Fill all the fields!!!",
+                    type: "error"
+                });
+                return;
+            }
             const tasksRef = database().ref('tasks');
 
             const newTaskRef = tasksRef.push();
@@ -51,8 +61,6 @@ const CreateTaskScreen = ({ }) => {
                     createdAt: new Date().toISOString(),
                 })
                 .then((res) => {
-                    console.log("res", res);
-                    console.log("Task Created Success!");
                     showToast({
                         text1: "Task Created Successfully!!!", type: "success"
                     });
