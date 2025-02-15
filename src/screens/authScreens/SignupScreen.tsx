@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert } from 'react-native';
 import { backgroundColors, textColors } from '../../constants/colors';
 import { AuthStackNavigatorParamsList } from '../../navigations/AuthStackNavigation';
@@ -9,14 +9,13 @@ import auth from '@react-native-firebase/auth';
 import { useAtom } from 'jotai';
 import { userAtom } from '../../jotaiStores/userAtomStore';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import SplashScreen from 'react-native-splash-screen';
 
 type AuthStackNavigationProp = StackNavigationProp<AuthStackNavigatorParamsList, "Signup-Screen">;
 
 const SignupScreen = () => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
-    const [confirmPassword, setConfirmPassword] = useState('');
-
     const [userData, setUserData] = useAtom(userAtom);
 
     const navigation = useNavigation<AuthStackNavigationProp>();
@@ -25,10 +24,6 @@ const SignupScreen = () => {
         auth()
             .createUserWithEmailAndPassword(email, password)
             .then(async (res) => {
-                console.log("sign up res:", res);
-                console.log(res?.user?.email);
-                console.log(res?.user?.uid);
-
                 setUserData({
                     uid: res?.user?.uid,
                     email: res?.user?.email,
@@ -40,13 +35,8 @@ const SignupScreen = () => {
                     email: res?.user?.email,
                     name: "",
                 }));
-
-                Alert.alert("User Sign up successs");
-                console.log('User account created & signed in!');
             })
             .catch(error => {
-                console.log("sign up error:", error);
-
                 if (error.code === 'auth/email-already-in-use') {
                     console.log('That email address is already in use!');
                 }
@@ -54,9 +44,14 @@ const SignupScreen = () => {
                 if (error.code === 'auth/invalid-email') {
                     console.log('That email address is invalid!');
                 }
-                // console.error(error);
             });
     }
+
+    // useEffect(() => {
+    //     setTimeout(() => {
+    //         SplashScreen.hide();
+    //     }, 500);
+    // }, [])
 
     return (
         <View style={styles.container}>
@@ -80,15 +75,6 @@ const SignupScreen = () => {
                 onChangeText={setPassword}
                 secureTextEntry
             />
-
-            {/* <Text style={styles.label}>Confirm Password</Text>
-            <TextInput
-                style={styles.input}
-                placeholder="Re-enter your password"
-                value={confirmPassword}
-                onChangeText={setConfirmPassword}
-                secureTextEntry
-            /> */}
 
             <TouchableOpacity style={styles.button} onPress={handleSignup}>
                 <Text style={styles.buttonText}>Sign Up</Text>
