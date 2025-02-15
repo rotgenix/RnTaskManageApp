@@ -5,6 +5,13 @@ import { backgroundColors, textColors } from '../../constants/colors';
 import { createTask } from '../../tasks/tasks';
 import { useAtom } from 'jotai';
 import { userAtom } from '../../jotaiStores/userAtomStore';
+import database from '@react-native-firebase/database';
+import { showToast } from '../../utils/ToastMessage';
+import { useNavigation } from '@react-navigation/native';
+import { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
+import { AppBottomTabNavigatorParamsList } from '../../navigations/AppNavigation';
+
+type AppNavigationProp = BottomTabNavigationProp<AppBottomTabNavigatorParamsList, "Tasks-Screen">;
 
 const CreateTaskScreen = ({ }) => {
     const [title, setTitle] = useState('');
@@ -26,14 +33,47 @@ const CreateTaskScreen = ({ }) => {
         setShowDatePicker(true);
     };
 
+    const navigation = useNavigation<AppNavigationProp>();
+
     const handleCreateTask = async () => {
-        const task = await createTask({
-            uid: userData?.uid,
-            taskTitle: title,
-            taskDescription: description,
-            dueDate: dueDate,
-            priority: priority,
-        });
+        try {
+            const tasksRef = database().ref('tasks');
+
+            const newTaskRef = tasksRef.push();
+            newTaskRef
+                .set({
+                    uid: userData?.uid,
+                    title: title,
+                    description: description,
+                    dueDate: dueDate.toISOString(),
+                    priority: priority,
+                    completed: false,
+                    createdAt: new Date().toISOString(),
+                })
+                .then((res) => {
+                    console.log("res", res);
+                    console.log("Task Created Success!");
+                    showToast({
+                        text1: "Task Created Successfully!!!", type: "success"
+                    });
+                    setTitle("");
+                    setDescription("");
+                    setDueDate(new Date());
+                    setPriority("");
+
+                    navigation.navigate("Tasks-Screen");
+                })
+                .catch((error) => {
+                    console.log("error", error);
+                    showToast({
+                        text1: "Error while creating Task",
+                        text2: "Please try again",
+                        type: "error"
+                    });
+                });
+        } catch (error) {
+            console.log("Error creating task!")
+        }
     }
 
     return (

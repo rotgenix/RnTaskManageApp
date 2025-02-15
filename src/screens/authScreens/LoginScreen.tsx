@@ -10,6 +10,7 @@ import auth from '@react-native-firebase/auth';
 import { userAtom } from '../../jotaiStores/userAtomStore';
 import { useAtom } from 'jotai';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { showToast } from '../../utils/ToastMessage';
 
 type AuthStackNavigationProp = StackNavigationProp<AuthStackNavigatorParamsList, "Login-Screen">;
 
@@ -24,25 +25,40 @@ const LoginScreen = () => {
         auth()
             .signInWithEmailAndPassword(email, password)
             .then(async (res) => {
-                console.log("res", res);
-                Alert.alert("Login successs");
-                console.log('Logged in!');
-
+                console.log("Login Success!");
+                showToast({ text1: "Logged in Successfully" });
                 setUserData({
                     uid: res?.user?.uid,
                     email: res?.user?.email,
                     name: "",
                 });
-
                 await AsyncStorage.setItem("userData", JSON.stringify({
                     uid: res?.user?.uid,
                     email: res?.user?.email,
                     name: "",
                 }));
-
             })
             .catch(error => {
-                console.log("login error:", error);
+                console.log("Login Error", error);
+                if (error?.code === "auth/invalid-credential") {
+                    showToast({
+                        type: "error",
+                        text1: "Invalid Credentials"
+                    });
+                } else if (error?.code === "auth/invalid-email") {
+                    showToast({
+                        type: "error",
+                        text1: "Invalid Email!",
+                        text2: "Please enter valid email!"
+                    })
+                }
+                else {
+                    showToast({
+                        type: "error",
+                        text1: "Login Error!",
+                        text2: "Please try again!"
+                    })
+                }
             });
     }
 
@@ -58,6 +74,7 @@ const LoginScreen = () => {
                 onChangeText={setEmail}
                 keyboardType="email-address"
                 autoCapitalize="none"
+                placeholderTextColor={textColors?.teriaryColor}
             />
 
             <Text style={styles.label}>Password</Text>
@@ -67,6 +84,7 @@ const LoginScreen = () => {
                 value={password}
                 onChangeText={setPassword}
                 secureTextEntry
+                placeholderTextColor={textColors?.teriaryColor}
             />
 
             <TouchableOpacity style={styles.button} onPress={handleLogin}>
@@ -110,6 +128,7 @@ const styles = StyleSheet.create({
         borderColor: '#ccc',
         borderRadius: 5,
         marginBottom: 10,
+        color: "#000"
     },
     button: {
         width: '80%',
