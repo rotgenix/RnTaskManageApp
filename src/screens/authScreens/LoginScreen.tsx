@@ -7,21 +7,39 @@ import { StackNavigationProp } from '@react-navigation/stack';
 import { AuthStackNavigatorParamsList } from '../../navigations/AuthStackNavigation';
 
 import auth from '@react-native-firebase/auth';
+import { userAtom } from '../../jotaiStores/userAtomStore';
+import { useAtom } from 'jotai';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 type AuthStackNavigationProp = StackNavigationProp<AuthStackNavigatorParamsList, "Login-Screen">;
 
 const LoginScreen = () => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    const [userData, setUserData] = useAtom(userAtom);
 
     const navigation = useNavigation<AuthStackNavigationProp>();
 
     const handleLogin = async () => {
         auth()
             .signInWithEmailAndPassword(email, password)
-            .then((res) => {
+            .then(async (res) => {
+                console.log("res", res);
                 Alert.alert("Login successs");
                 console.log('Logged in!');
+
+                setUserData({
+                    uid: res?.user?.uid,
+                    email: res?.user?.email,
+                    name: "",
+                });
+
+                await AsyncStorage.setItem("userData", JSON.stringify({
+                    uid: res?.user?.uid,
+                    email: res?.user?.email,
+                    name: "",
+                }));
+
             })
             .catch(error => {
                 console.log("login error:", error);

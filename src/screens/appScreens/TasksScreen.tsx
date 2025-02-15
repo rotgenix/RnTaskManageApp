@@ -15,6 +15,7 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 
 import { AppBottomTabNavigatorParamsList } from '../../navigations/AppNavigation';
 import { backgroundColors, textColors } from '../../constants/colors';
+import SplashScreen from 'react-native-splash-screen';
 
 type AuthStackNavigationProp = BottomTabNavigationProp<AppBottomTabNavigatorParamsList, "Tasks-Screen">;
 
@@ -68,6 +69,12 @@ const TasksScreen = () => {
         }
         setNewTasks(tasks);
     }, [isFocused]);
+
+    // useEffect(() => {
+    //     setTimeout(() => {
+    //         SplashScreen.hide();
+    //     }, 500);
+    // }, [])
 
     const handleEdit = (task: taskInterface) => {
         navigation.navigate("Create-Task-Screen", {
